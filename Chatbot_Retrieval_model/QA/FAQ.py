@@ -14,13 +14,12 @@
 '''
 
 import os
-import time
 import logging
 import jieba
 import jieba.posseg as pseg
 from collections import deque
 
-from QA.utils import (get_logger, similarity)
+from Chatbot_Retrieval_model.QA.utils import (get_logger, similarity)
 
 jieba.dt.tmp_dir = "./"
 jieba.default_logger.setLevel(logging.ERROR)
@@ -46,7 +45,7 @@ class FAQ(object):
         self.reload()
 
     def load_qa(self):
-        print('问答知识库开始载入')
+        # print('问答知识库开始载入')
         self.zhishiku = []
         with open(self.zhishitxt, encoding='utf-8') as f:
             txt = f.readlines()
@@ -91,7 +90,7 @@ class FAQ(object):
         self.load_qa()
         self.load_embedding()
 
-        print('问答知识库载入完毕')
+        # print('问答知识库载入完毕')
 
     def maxSimTxt(self, intxt, simCondision=0.1, simType='simple'):
         """
@@ -119,7 +118,7 @@ class FAQ(object):
         logger.info('maxSim=' + format(maxSim.sim, '.0%'))
 
         if maxSim.sim < simCondision:
-            return '抱歉，我没有理解您的意思。请您询问有关减肥的话题。'
+            return '抱歉，我没有理解您的意思。请您询问有关汽车的话题。'
 
         return maxSim.a
 
@@ -139,8 +138,8 @@ class FAQ(object):
             # 输出回复内容，并计入日志
         return outtxt
 
-if __name__ == '__main__':
-    data = '/home/xsq/nlp_code/Chatbot_Retrieval/data/FAQ/FAQ.txt'
-    robot = FAQ(data, usedVec=False)
-    while True:
-        print('回复：' + robot.answer(input('输入：'), 'simple_pos') + '\n')
+# if __name__ == '__main__':
+#     data = '/home/xsq/nlp_code/Chatbot_Retrieval/data/FAQ/FAQ.txt'
+#     robot = FAQ(data, usedVec=False)
+#     while True:
+#         print('回复：' + robot.answer(input('输入：'), 'simple_pos') + '\n')

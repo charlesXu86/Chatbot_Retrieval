@@ -13,7 +13,7 @@
  
 '''
 
-from Bert_sim.predict import predicts
+from Chatbot_Retrieval_model.Bert_sim import predicts
 
 
 sentences = [['长的清新是什么意思', '小清新的意思是什么']]
