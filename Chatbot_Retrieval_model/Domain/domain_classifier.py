@@ -92,7 +92,7 @@ class DomainProcessor(DataProcessor):
     """Processor for the FenLei data set (GLUE version)."""
 
     def get_train_examples(self, data_dir):
-        file_path = os.path.join(data_dir, 'cnews.train.txt')
+        file_path = os.path.join(data_dir, 'train.txt')
         with open(file_path, 'r', encoding="utf-8") as f:
             reader = f.readlines()
         random.seed(0)
@@ -111,7 +111,7 @@ class DomainProcessor(DataProcessor):
         return examples
 
     def get_dev_examples(self, data_dir):
-        file_path = os.path.join(data_dir, 'cnews.val.txt')
+        file_path = os.path.join(data_dir, 'val.txt')
         with open(file_path, 'r', encoding="utf-8") as f:
             reader = f.readlines()
         random.shuffle(reader)
@@ -119,7 +119,7 @@ class DomainProcessor(DataProcessor):
         examples = []
         for index, line in enumerate(reader):
             guid = 'dev-%d' % index
-            split_line = line.strip().split("\t")
+            split_line = line.strip().split('\t')
             text_a = tokenization.convert_to_unicode(split_line[1])
             text_b = None
             label = split_line[0]
@@ -230,7 +230,7 @@ def convert_single_example(ex_index, example, label_list, max_seq_length, tokeni
 def file_based_convert_examples_to_features(examples, label_list, max_seq_length, tokenizer, output_file):
     """Convert a set of `InputExample`s to a TFRecord file."""
 
-    writer = tf.python_io.TFRecordWriter(output_file)
+    writer = tf.io.TFRecordWriter(output_file)
 
     for (ex_index, example) in enumerate(examples):
         if ex_index % 10000 == 0:
@@ -564,8 +564,8 @@ def main():
             "was only trained up to sequence length %d" %
             (cf.max_seq_length, bert_config.max_position_embeddings))
 
-    tf.gfile.MakeDirs(cf.output_dir)
-    tf.gfile.MakeDirs(cf.pb_model_dir)
+    tf.io.gfile.makedirs(cf.output_dir)
+    tf.io.gfile.makedirs(cf.pb_model_dir)
     task_name = cf.task_name.lower()
     if task_name not in processors:
         raise ValueError("Task not found: %s" % (task_name))
