@@ -22,8 +22,8 @@ class Config():
     def __init__(self):
         self.bert_config_file = '/Data/public/Bert/chinese_wwm_L-12_H-768_A-12/bert_config.json'
         self.vocab_file = '/Data/public/Bert/chinese_wwm_L-12_H-768_A-12/vocab.txt'
-        # self.data_dir = os.path.join(basedir, 'data/domain/')
-        self.data_dir = '/Data/xiaobensuan/cnews/'
+        self.data_dir = os.path.join(basedir, 'data/domain/')
+        # self.data_dir = '/Data/xiaobensuan/cnews/'
         self.output_dir = basedir + '/Chatbot_Retrieval_model/Domain/results'
         self.init_checkpoint = '/Data/public/Bert/chinese_wwm_L-12_H-768_A-12/bert_model.ckpt'
         self.pb_model_dir = basedir + '/Chatbot_Retrieval_model/Domain/pb'

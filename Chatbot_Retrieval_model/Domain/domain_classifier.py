@@ -9,7 +9,7 @@
 
 @Time    :   2019-11-06 14:25
 
-@Desc    :  基于bert的分类模型的fine-tune的领域分类模型
+@Desc    :  基于bert的分类模型的fine-tune的领域分类模型，模型准确率验证通过，但是需要修改模型的初始化方法
 
 '''
 
@@ -645,6 +645,7 @@ def main():
                 writer.write("%s = %s\n" % (key, str(result[key])))
 
     if cf.do_predict:
+        # 预测方法
         predict_examples = processor.get_test_examples(cf.data_dir)  # 待预测的样本们
 
         num_actual_predict_examples = len(predict_examples)
