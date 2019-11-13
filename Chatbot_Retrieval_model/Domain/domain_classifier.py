@@ -49,8 +49,7 @@ class InputExample(object):
 class InputFeatures(object):
     """A single set of features of data."""
 
-    def __init__(self,
-                 input_ids, input_mask, segment_ids, label_id, is_real_example=True):
+    def __init__(self, input_ids, input_mask, segment_ids, label_id, is_real_example=True):
         self.input_ids = input_ids
         self.input_mask = input_mask
         self.segment_ids = segment_ids
@@ -90,6 +89,9 @@ class DataProcessor(object):
 
 class DomainProcessor(DataProcessor):
     """Processor for the FenLei data set (GLUE version)."""
+
+    # def __init__(self):
+    #     self.labels = []
 
     def get_train_examples(self, data_dir):
         file_path = os.path.join(data_dir, 'train.txt')

@@ -47,11 +47,10 @@ class Config():
         self.max_query_length = 64
 
 
-        self.do_train = True
-        self.do_predict = False
+        self.do_train = False
+        self.do_predict = True
         self.do_eval = True
         self.batch_size = 20
-        self.predict_batch_size = 8
         self.learning_rate = 5e-5
         self.num_train_epochs = 3.0
         self.warmup_proportion = 0.1
@@ -59,5 +58,3 @@ class Config():
         self.iterations_per_loop = 1000
         self.n_best_size = 20
         self.max_answer_length = 30
-        self.eval_batch_size = 16
-        # self.do_eval = False

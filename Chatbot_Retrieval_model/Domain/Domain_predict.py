@@ -40,9 +40,9 @@ class Bert_Class():
 
         # if not hasattr(self, 'graph_path'):
         #     with Bert_Class._lock:
-                self.graph_path = os.path.join(cf.pb_model_dir, 'classification_model.pb')
-                self.ckpt_tool, self.pbTool = None, None
-                self.prepare()
+        self.graph_path = os.path.join(cf.pb_model_dir, 'classification_model.pb')
+        self.ckpt_tool, self.pbTool = None, None
+        self.prepare()
 
     def classification_model_fn(self, features, mode):
         with tf.gfile.GFile(self.graph_path, 'rb') as f:
@@ -114,10 +114,7 @@ class Bert_Class():
                                             is_training=False,
                                             drop_remainder=False)
         result = self.ckpt_tool.predict(input_fn=predict_input_fn)  # 执行预测操作，得到一个生成器。
-        aaa = time.perf_counter()
         gailv = list(result)[0]["probabilities"].tolist()
-        bbb = time.perf_counter()
-        print('模型预测时间:', bbb - aaa)
         pos = gailv.index(max(gailv))  # 定位到最大概率值索引，
         return label_list[pos]
 
@@ -132,17 +129,12 @@ class Bert_Class():
 
         exam = self.processor.one_example(sentence)  # 待预测的样本列表
         feature = convert_single_example(0, exam, label_list, cf.max_seq_length, self.tokenizer)
+        print(label_list)
         predict_input_fn = input_fn_builder(features=[feature],
                                             seq_length=cf.max_seq_length, is_training=False,
                                             drop_remainder=False)
-        # aaa = time.clock()
         result = self.pbTool.predict(input_fn=predict_input_fn)  # 执行预测操作，得到一个生成器。
-
-        print(result)
-        aaa = time.perf_counter()
         ele = list(result)[0]
-        bbb = time.perf_counter()
-        print('模型预测时间:', bbb - aaa)
         print('类别：{}，置信度：{:.3f}'.format(label_list[ele['encodes']], ele['score']))
         return label_list[ele['encodes']]
 
@@ -152,9 +144,15 @@ class SameDifModel(object):
     def __init__(self):
         # tokenizer
         self.tokenizer = tokenization.FullTokenizer(
-            vocab_file=cf.vocab_file, do_lower_case=True)
+                            vocab_file=cf.vocab_file,
+                            do_lower_case=True)
         # config
         self.max_seq_len = cf.max_seq_length
+
+        self.processor = DomainProcessor()
+        self.train_examples = self.processor.get_train_examples(cf.data_dir)
+        global label_list
+        label_list = self.processor.get_labels()
         self.run_config = tf.estimator.RunConfig(
             model_dir=cf.output_dir,
             save_checkpoints_steps=1000,
@@ -164,7 +162,7 @@ class SameDifModel(object):
         self.model_fn = predict_model_builder(
             bert_config=self.bert_config,
             init_checkpoint=cf.init_checkpoint,
-            num_labels=2
+            num_labels= len(label_list)         # 分类的label数目
         )
 
         # estimator
@@ -174,6 +172,13 @@ class SameDifModel(object):
 
     def predict(self, input_features):
         return self.estimator.predict(input_features)
+
+    def get_label_list(self):
+        self.processor = DomainProcessor()
+        self.train_examples = self.processor.get_train_examples(cf.data_dir)
+        global label_list
+        label_list = self.processor.get_labels()
+        return label_list
 
 class DomainPredictThread(SameDifModel):
     '''
