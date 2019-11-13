@@ -674,20 +674,19 @@ class BertSim():
         return prediction
 
 
-if __name__ == '__main__':
-    sim = BertSim()
-    if cf.do_train:
-        sim.set_mode(tf.estimator.ModeKeys.TRAIN)
-        sim.train()
-        sim.set_mode(tf.estimator.ModeKeys.EVAL)
-        sim.eval()
-    if cf.do_predict:
-        sim.set_mode(tf.estimator.ModeKeys.PREDICT)
-        # while True:
-        # sentence1 = input('sentence1: ')
-        # sentence2 = input('sentence2: ')
-        sentence1 = '十万预算买什么车好？'
-        sentence2 = '保险一般都哪些种类？'
-        predict = sim.predict(sentence1, sentence2)
-        print(predict[0][1])
-        #print(f'similarity：{predict[0][1]}')
+# if __name__ == '__main__':
+#     sim = BertSim()
+#     if cf.do_train:
+#         sim.set_mode(tf.estimator.ModeKeys.TRAIN)
+#         sim.train()
+#         sim.set_mode(tf.estimator.ModeKeys.EVAL)
+#         sim.eval()
+#     if cf.do_predict:
+#         sim.set_mode(tf.estimator.ModeKeys.PREDICT)
+#         # while True:
+#         # sentence1 = input('sentence1: ')
+#         # sentence2 = input('sentence2: ')
+#         sentence1 = '十万预算买什么车好？'
+#         sentence2 = '保险一般都哪些种类？'
+#         predict = sim.predict(sentence1, sentence2)
+#         print(predict[0][1])
