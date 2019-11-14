@@ -16,6 +16,9 @@
 import os, csv, random, collections, pickle
 import tensorflow as tf
 import numpy as np
+import pickle as pkl
+import pathlib
+
 from queue import Queue
 from threading import Thread
 from bert4tf import modeling
@@ -25,6 +28,9 @@ from Chatbot_Retrieval_model.Domain.config import Config
 
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+
+basedir = str(pathlib.Path(os.path.abspath(__file__)).parent)
+
 cf = Config()
 
 
@@ -128,7 +134,6 @@ class DomainProcessor(DataProcessor):
             label = split_line[0]
             examples.append(InputExample(guid=guid, text_a=text_a,
                                          text_b=text_b, label=label))
-
         return examples
 
     def get_test_examples(self, data_dir):
@@ -164,7 +169,6 @@ class DomainProcessor(DataProcessor):
 
     def get_labels(self):
         return sorted(set(self.labels), key=self.labels.index)  # 使用有序列表而不是集合。保证了标签正确
-
 
 
 class DomainCLS():
@@ -231,6 +235,8 @@ class DomainCLS():
             logits = tf.matmul(output_layer, output_weights, transpose_b=True)
             logits = tf.nn.bias_add(logits, output_bias)
             probabilities = tf.nn.softmax(logits, axis=-1)
+
+            # 这里对分类样本进行加权操作，处理分类样本不均衡问题
             log_probs = tf.nn.log_softmax(logits, axis=-1)
 
             one_hot_labels = tf.one_hot(labels, depth=num_labels, dtype=tf.float32)
@@ -299,7 +305,7 @@ class DomainCLS():
 
         bert_config = modeling.BertConfig.from_json_file(cf.bert_config_file)
         train_examples = self.processor.get_train_examples(cf.data_dir)
-        label_list = self.processor.get_labels()
+        label_list = self.get_label_list()
         num_train_steps = int(len(train_examples) / self.batch_size * cf.num_train_epochs)
         num_warmup_steps = int(num_train_steps * 0.1)
 
@@ -325,10 +331,11 @@ class DomainCLS():
         return Estimator(model_fn=model_fn, config=RunConfig(session_config=config), model_dir=cf.output_dir, params={'batch_size': self.batch_size})
 
     def get_label_list(self):
-        self.processor = DomainProcessor()
-        self.train_examples = self.processor.get_train_examples(cf.data_dir)
-        global label_list
-        label_list = self.processor.get_labels()
+        '''
+        读取模型训练是动态产生的label_list.pkl文件
+        :return:
+        '''
+        label_list = pkl.load(open(basedir + '/label_list.pkl', 'rb'))
         return label_list
 
     def predict_from_queue(self):
@@ -604,7 +611,6 @@ class DomainCLS():
 
         return input_fn
 
-
     # This function is not used by this file but is still used by the Colab and people who depend on it.
     def input_fn_builder(self, features, seq_length, is_training, drop_remainder):
         """Creates an `input_fn` closure to be passed to TPUEstimator."""
@@ -730,6 +736,10 @@ class DomainCLS():
 
 
     def train(self):
+        '''
+        domain 模型训练
+        :return:
+        '''
         if self.mode is None:
             raise ValueError("Please set the 'mode' parameter")
 
@@ -744,7 +754,14 @@ class DomainCLS():
         tf.gfile.MakeDirs(cf.output_dir)
 
         train_examples = self.processor.get_train_examples(cf.data_dir)
-        label_list = self.processor.get_labels()
+        label_list = self.processor.get_labels()       # 从训练数据中动态获取label标签， 并且将其映射成pkl文件
+        label_map = {}
+        for (i, label) in enumerate(label_list):
+            label_map[label] = i
+        with open('label_list.pkl', 'wb') as f:
+            pickle.dump(label_list, f)
+        with open('label2id.pkl', 'wb') as f:
+            pickle.dump(label_map, f)
 
         num_train_steps = int(len(train_examples) / cf.batch_size * cf.num_train_epochs)
 
@@ -814,14 +831,14 @@ class DomainCLS():
 
 
     # save_PBmodel(len(label_list))  # 生成单个pb模型。
-if __name__ == '__main__':
-    cls = DomainCLS()
-    if cf.do_train:
-        cls.set_mode(tf.estimator.ModeKeys.TRAIN)
-        cls.train()
-        cls.set_mode(tf.estimator.ModeKeys.EVAL)
-        cls.eval()
-    if cf.do_predict:
-        cls.set_mode(tf.estimator.ModeKeys.PREDICT)
-        sentence = '十万预算买什么车好？'
-        cls.predict(sentence)
+# if __name__ == '__main__':
+#     cls = DomainCLS()
+#     if cf.do_train:
+#         cls.set_mode(tf.estimator.ModeKeys.TRAIN)
+#         cls.train()
+#         cls.set_mode(tf.estimator.ModeKeys.EVAL)
+#         cls.eval()
+#     if cf.do_predict:
+#         cls.set_mode(tf.estimator.ModeKeys.PREDICT)
+#         sentence = '十万预算买什么车好？'
+#         cls.predict(sentence)
