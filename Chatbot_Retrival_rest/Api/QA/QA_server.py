@@ -26,22 +26,22 @@ logger = logging.getLogger(__name__)
 def qa_server(request):
     if request.method == 'POST':
 
-        try:
+        # try:
             jsonData = json.loads(request.body.decode('utf-8'))
             msg = jsonData["msg"]
             localtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            anwser = get_anwser(msg)
-
+            result = get_anwser(msg)
+            print(result)
             dic = {
                 "desc": "Success",
                 "ques": msg,
-                "res1": anwser,
+                "result": result,
                 "time": localtime
             }
             log_res = json.dumps(dic, ensure_ascii=False)
             logger.info(log_res)
             return JsonResponse(dic)
-        except Exception as e:
-            logger.info(e)
+        # except Exception as e:
+        #     logger.info(e)
     else:
         return JsonResponse({"desc": "Bad request"}, status=400)

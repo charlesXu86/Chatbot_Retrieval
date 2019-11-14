@@ -47,8 +47,8 @@ class Config():
         self.max_query_length = 64
 
 
-        self.do_train = False
-        self.do_predict = True
+        self.do_train = True
+        self.do_predict = False
         self.do_eval = True
         self.batch_size = 20
         self.learning_rate = 5e-5

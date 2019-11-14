@@ -16,13 +16,15 @@
 import pathlib
 import os
 import tensorflow as tf
+import numpy as np
 
 from Chatbot_Retrieval_model.QA.FAQ import FAQ
 from Chatbot_Retrieval_model.Bert_sim.run_similarity import BertSim   # Bert语义相似度
-from Chatbot_Retrieval_model.Domain.Domain_predict import Bert_Class
-
+from Chatbot_Retrieval_model.Domain.domain_classifier_v2 import DomainCLS   # Domain 分类
 from Chatbot_Retrieval_model.util.logutil import Logger
 
+
+import time
 
 baseDir = str(pathlib.Path(os.path.abspath(__file__)).parent.parent.parent)
 
@@ -33,9 +35,15 @@ data = baseDir + '/data/FAQ/FAQ.txt'
 bs = BertSim()
 bs.set_mode(tf.estimator.ModeKeys.PREDICT)
 
-bc = Bert_Class()
+dc = DomainCLS()
+dc.set_mode(tf.estimator.ModeKeys.PREDICT)
 
 def get_anwser(msg):
+
+    resul = {
+        'domain':'',
+        'anwser':''
+    }
 
     robot = FAQ(data, usedVec=False)
 
@@ -45,10 +53,11 @@ def get_anwser(msg):
     predict = bs.predict(msg, sen2)
     result = predict[0][1]
 
-    bc_result = bc.predict_on_pb(msg)
-    print(result, bc_result)
+    domain_result = dc.predict(msg)
+    resul['domain'] = domain_result
+    resul['anwser'] = anwser
 
-    return anwser
+    return resul
 
 def estimate_answer(candidate, answer):
     '''
@@ -77,9 +86,3 @@ def estimate_answer(candidate, answer):
 
 # msg = '预算14万内买什么车好呢？'
 # get_anwser(msg)
-
-if __name__ == '__main__':
-    sentence1 = '你多大了？'
-    sentence2 = '你今年几岁'
-    predict = bs.predict(sentence1, sentence2)
-    print(predict[0][1])
