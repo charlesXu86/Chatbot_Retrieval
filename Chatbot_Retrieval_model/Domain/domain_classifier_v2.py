@@ -54,7 +54,6 @@ class InputExample(object):
         self.text_b = text_b
         self.label = label
 
-
 class InputFeatures(object):
     """A single set of features of data."""
 
@@ -65,7 +64,6 @@ class InputFeatures(object):
         self.segment_ids = segment_ids
         self.label_id = label_id
         self.is_real_example = is_real_example
-
 
 class DataProcessor(object):
     """Base class for data converters for sequence classification data sets."""
@@ -95,7 +93,6 @@ class DataProcessor(object):
             for line in reader:
                 lines.append(line)
             return lines
-
 
 class DomainProcessor(DataProcessor):
     """Processor for the FenLei data set (GLUE version)."""
@@ -170,7 +167,6 @@ class DomainProcessor(DataProcessor):
     def get_labels(self):
         return sorted(set(self.labels), key=self.labels.index)  # 使用有序列表而不是集合。保证了标签正确
 
-
 class DomainCLS():
 
     def __init__(self, batch_size=cf.batch_size):
@@ -189,7 +185,7 @@ class DomainCLS():
         if mode == tf.estimator.ModeKeys.PREDICT:
             self.input_queue = Queue(maxsize=1)
             self.output_queue = Queue(maxsize=1)
-            self.predict_thread = Thread(target=self.predict_from_queue, daemon=True)#daemon守护进程
+            self.predict_thread = Thread(target=self.predict_from_queue, daemon=True)    #daemon守护进程
             self.predict_thread.start()
 
     def create_model(bert_config, is_training, input_ids, input_mask, segment_ids, labels, num_labels, use_one_hot_embeddings):
@@ -361,7 +357,6 @@ class DomainCLS():
             predict_examples = self.processor.get_sentence_examples(self.input_queue.get())
 
             features = list(self.convert_examples_to_features(predict_examples,
-                                                              # self.processor.get_labels(),
                                                               self.get_label_list(),
                                                               cf.max_seq_length,
                                                               self.tokenizer))
@@ -432,8 +427,7 @@ class DomainCLS():
             if ex_index < 5:
                 tf.compat.v1.logging.info("*** Example ***")
                 tf.compat.v1.logging.info("guid: %s" % (example.guid))
-                tf.compat.v1.logging.info("tokens: %s" % " ".join(
-                    [tokenization.printable_text(x) for x in tokens]))
+                tf.compat.v1.logging.info("tokens: %s" % " ".join([tokenization.printable_text(x) for x in tokens]))
                 tf.compat.v1.logging.info("input_ids: %s" % " ".join([str(x) for x in input_ids]))
                 tf.compat.v1.logging.info("input_mask: %s" % " ".join([str(x) for x in input_mask]))
                 tf.compat.v1.logging.info("segment_ids: %s" % " ".join([str(x) for x in segment_ids]))
