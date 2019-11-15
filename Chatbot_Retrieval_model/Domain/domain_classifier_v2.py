@@ -153,7 +153,7 @@ class DomainProcessor(DataProcessor):
     def get_sentence_examples(self, questions):
         for index, data in enumerate(questions):
             guid = 'test-%d' % index
-            text_a = tokenization.convert_to_unicode(str(data[0]))
+            text_a = tokenization.convert_to_unicode(str(data))
             text_b = None
             # label = str(0)
             label = self.labels[0]
@@ -825,14 +825,16 @@ class DomainCLS():
 
 
     # save_PBmodel(len(label_list))  # 生成单个pb模型。
-# if __name__ == '__main__':
-#     cls = DomainCLS()
-#     if cf.do_train:
-#         cls.set_mode(tf.estimator.ModeKeys.TRAIN)
-#         cls.train()
-#         cls.set_mode(tf.estimator.ModeKeys.EVAL)
-#         cls.eval()
-#     if cf.do_predict:
-#         cls.set_mode(tf.estimator.ModeKeys.PREDICT)
-#         sentence = '十万预算买什么车好？'
-#         cls.predict(sentence)
+if __name__ == '__main__':
+    cls = DomainCLS()
+    # if cf.do_train:
+    #     cls.set_mode(tf.estimator.ModeKeys.TRAIN)
+    #     cls.train()
+    #     cls.set_mode(tf.estimator.ModeKeys.EVAL)
+    #     cls.eval()
+    if cf.do_predict:
+        cls.set_mode(tf.estimator.ModeKeys.PREDICT)
+        sentence = '十万预算买什么车好？'
+        y = cls.predict(sentence)
+        print(y)
+
