@@ -27,7 +27,7 @@ from bert4tf import tokenization
 from Chatbot_Retrieval_model.Domain.config import Config
 
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '1,2'
 
 basedir = str(pathlib.Path(os.path.abspath(__file__)).parent)
 
