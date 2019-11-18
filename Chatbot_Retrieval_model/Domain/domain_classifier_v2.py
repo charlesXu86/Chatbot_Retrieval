@@ -27,7 +27,7 @@ from bert4tf import tokenization
 from Chatbot_Retrieval_model.Domain.config import Config
 
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '1,2'
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 basedir = str(pathlib.Path(os.path.abspath(__file__)).parent)
 
@@ -301,7 +301,8 @@ class DomainCLS():
 
         bert_config = modeling.BertConfig.from_json_file(cf.bert_config_file)
         train_examples = self.processor.get_train_examples(cf.data_dir)
-        label_list = self.get_label_list()
+        label_list = self.processor.get_labels()       # 这里需要这样写，如果用self.get_label_list()获取列表，在还没有生成label_list.pkl文件的时候会报错
+        # label_list = self.get_label_list()
         num_train_steps = int(len(train_examples) / self.batch_size * cf.num_train_epochs)
         num_warmup_steps = int(num_train_steps * 0.1)
 
@@ -357,7 +358,7 @@ class DomainCLS():
             predict_examples = self.processor.get_sentence_examples(self.input_queue.get())
 
             features = list(self.convert_examples_to_features(predict_examples,
-                                                              self.get_label_list(),
+                                                              self.processor.get_labels(),
                                                               cf.max_seq_length,
                                                               self.tokenizer))
             yield {
@@ -768,7 +769,8 @@ class DomainCLS():
         tf.compat.v1.logging.info("  Num examples = %d", len(train_examples))
         tf.compat.v1.logging.info("  Batch size = %d", cf.batch_size)
         tf.compat.v1.logging.info("  Num steps = %d", num_train_steps)
-        train_input_fn = self.file_based_input_fn_builder(input_file=train_file, seq_length=cf.max_seq_length,
+        train_input_fn = self.file_based_input_fn_builder(input_file=train_file,
+                                                          seq_length=cf.max_seq_length,
                                                           is_training=True,
                                                           drop_remainder=True)
 
@@ -825,16 +827,15 @@ class DomainCLS():
 
 
     # save_PBmodel(len(label_list))  # 生成单个pb模型。
-if __name__ == '__main__':
-    cls = DomainCLS()
-    # if cf.do_train:
-    #     cls.set_mode(tf.estimator.ModeKeys.TRAIN)
-    #     cls.train()
-    #     cls.set_mode(tf.estimator.ModeKeys.EVAL)
-    #     cls.eval()
-    if cf.do_predict:
-        cls.set_mode(tf.estimator.ModeKeys.PREDICT)
-        sentence = '十万预算买什么车好？'
-        y = cls.predict(sentence)
-        print(y)
-
+# if __name__ == '__main__':
+#     cls = DomainCLS()
+#     if cf.do_train:
+#         cls.set_mode(tf.estimator.ModeKeys.TRAIN)
+#         cls.train()
+#         cls.set_mode(tf.estimator.ModeKeys.EVAL)
+#         cls.eval()
+    # if cf.do_predict:
+    #     cls.set_mode(tf.estimator.ModeKeys.PREDICT)
+    #     sentence = '你们店在哪里，给我发个定位'
+    #     y = cls.predict(sentence)
+    #     print(y)
