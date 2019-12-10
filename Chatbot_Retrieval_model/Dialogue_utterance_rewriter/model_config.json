@@ -1,0 +1,18 @@
+{
+  "mode": "train",
+  "learning_rate": 0.15,
+  "adagrad_init_acc": 0.1,
+  "rand_unif_init_mag": 0.02,
+  "trunc_norm_init_std": 1e-4,
+  "max_grad_norm": 2.0,
+  "hidden_dim": 256,
+  "emb_dim": 1248 ,
+  "batch_size": 256,
+  "encoder_type": "bi",
+  "max_dec_steps": 30,
+  "max_enc_steps": 50,
+  "coverage": false,
+  "cov_loss_wt": 1.0,
+  "pointer_gen": true
+
+}

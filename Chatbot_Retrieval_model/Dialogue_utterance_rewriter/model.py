@@ -1,15 +1,29 @@
 # -*- coding: utf-8 -*-
 
-"""This file contains code to build and run the tensorflow graph for the sequence-to-sequence model"""
+'''
+@Author  :   Xu
+
+@Software:   PyCharm
+
+@File    :   model.py
+
+@Time    :   2019-11-06 14:25
+
+@Desc    :  This file contains code to build and run the tensorflow graph for the sequence-to-sequence model
+
+'''
 
 import os
 import time
 import numpy as np
 import tensorflow as tf
-from attention_decoder import attention_decoder
 from tensorflow.contrib.tensorboard.plugins import projector
 
-FLAGS = tf.app.flags.FLAGS
+from Chatbot_Retrieval_model.Dialogue_utterance_rewriter.attention_decoder import attention_decoder
+from Chatbot_Retrieval_model.Dialogue_utterance_rewriter.config import Config
+
+
+cf = Config()
 
 
 class SummarizationModel(object):
@@ -45,7 +59,7 @@ class SummarizationModel(object):
         self._query_padding_mask = tf.placeholder(
             tf.float32, [hps.batch_size, None], name='query_padding_mask')
         
-        if FLAGS.pointer_gen:
+        if cf.pointer_gen:
             self._enc_batch_extend_vocab = tf.placeholder(
                 tf.int32, [hps.batch_size, None],
                 name='enc_batch_extend_vocab')
@@ -332,7 +346,7 @@ class SummarizationModel(object):
         https://www.tensorflow.org/get_started/embedding_viz
         Make the vocab metadata file, then make the projector config file pointing to it.
         """
-        train_dir = os.path.join(FLAGS.log_root, "train")
+        train_dir = os.path.join(cf.log_root, "train")
         vocab_metadata_path = os.path.join(train_dir, "vocab_metadata.tsv")
         self._vocab.write_metadata(vocab_metadata_path)  # write metadata file
         summary_writer = tf.summary.FileWriter(train_dir)
@@ -416,7 +430,7 @@ class SummarizationModel(object):
 
     def _add_loss(self):
         with tf.variable_scope('loss'):
-            if FLAGS.pointer_gen:
+            if cf.pointer_gen:
                 # Calculate the loss per step
                 # This is fiddly; we use tf.gather_nd to pick out the probabilities of the gold target words
                 # will be list length max_dec_steps containing shape (batch_size)
@@ -430,13 +444,13 @@ class SummarizationModel(object):
                     indices = tf.stack((batch_nums, targets), axis=1) 
                     # shape (batch_size). prob of correct words on this step
                     gold_probs = tf.gather_nd(dist, indices)
-                    losses = -tf.log(tf.clip_by_value(gold_probs, 1e-10, 1.0))
+                    losses = -tf.math.log(tf.clip_by_value(gold_probs, 1e-10, 1.0))
                     loss_per_step.append(losses)
 
                 # Apply dec_padding_mask and get loss
                 self._loss = _mask_and_avg(loss_per_step, self._dec_padding_mask)
 
-            tf.summary.scalar('loss', self._loss)
+            tf.compat.v1.summary.scalar('loss', self._loss)
 
             # Calculate coverage loss from the attention distributions
             if self._hps.coverage:
@@ -468,7 +482,7 @@ class SummarizationModel(object):
         # Add a summary
         tf.summary.scalar('global_norm', global_norm)
 
-        optimizer = tf.train.AdagradOptimizer(
+        optimizer = tf.compat.v1.train.AdagradOptimizer(
             self._hps.learning_rate,
             initial_accumulator_value=self._hps.adagrad_init_acc)
 
@@ -538,7 +552,7 @@ class SummarizationModel(object):
 
         # dec_in_state is LSTMStateTuple shape ([batch_size,hidden_dim],[batch_size,hidden_dim])
         # Given that the batch is a single example repeated, dec_in_state is identical across the batch so we just take the top row.
-        if FLAGS.mode == 'decode' and FLAGS.beam_size > 0:
+        if cf.mode == 'decode' and cf.beam_size > 0:
             dec_in_state = tf.contrib.rnn.LSTMStateTuple(
                 dec_in_state.c[0], dec_in_state.h[0])
         else:
@@ -615,7 +629,7 @@ class SummarizationModel(object):
         new_states = [
             tf.contrib.rnn.LSTMStateTuple(results['states'].c[i, :],
                                           results['states'].h[i, :])
-            for i in xrange(beam_size)
+            for i in range(beam_size)
         ]
 
         # Convert singleton list containing a tensor to a list of k arrays
@@ -623,13 +637,13 @@ class SummarizationModel(object):
         attn_dists = results['attn_dists'][0].tolist()
 
         # Convert the coverage tensor to a list length k containing the coverage vector for each hypothesis
-        if FLAGS.coverage:
+        if cf.coverage:
             new_t_coverage = results['t_coverage'].tolist()
             new_b_coverage = results['b_coverage'].tolist()
             assert len(new_t_coverage) == beam_size
         else:
-            new_t_coverage = [None for _ in xrange(beam_size)]
-            new_b_coverage = [None for _ in xrange(beam_size)]
+            new_t_coverage = [None for _ in range(beam_size)]
+            new_b_coverage = [None for _ in range(beam_size)]
 
         return results['ids'], results['probs'], new_states, attn_dists, new_t_coverage, new_b_coverage
 
