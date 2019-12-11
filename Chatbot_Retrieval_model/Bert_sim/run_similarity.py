@@ -81,39 +81,49 @@ class DataProcessor(object):
 class SimProcessor(DataProcessor):
     def get_train_examples(self, data_dir):
         file_path = os.path.join(data_dir, 'train.txt')
-        train_df = pd.read_csv(file_path, encoding='utf-8', sep='\t', header=None)
+        # train_df = pd.read_csv(file_path, encoding='utf-8', sep='\t', header=None)
         train_data = []
-        for index, train in enumerate(train_df.values):
-            guid = 'train-%d' % index
-            text_a = tokenization.convert_to_unicode(str(train[1]))
-            text_b = tokenization.convert_to_unicode(str(train[2]))
-            label = str(train[3])
-            train_data.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
-        return train_data
+        with open(file_path, 'r', encoding='utf-8') as train_f:
+            train_dt = train_f.readlines()
+
+            for i in range(len(train_dt)):
+                row_data = train_dt[i].strip().split('\t')
+                guid = 'train-%d' % i
+                text_a = tokenization.convert_to_unicode(row_data[0])
+                text_b = tokenization.convert_to_unicode(row_data[1])
+                label = str(row_data[2])
+                train_data.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+            return train_data
 
     def get_dev_examples(self, data_dir):
         file_path = os.path.join(data_dir, 'dev.txt')
-        dev_df = pd.read_csv(file_path, encoding='utf-8', sep='\t', header=None)
         dev_data = []
-        for index, dev in enumerate(dev_df.values):
-            guid = 'test-%d' % index
-            text_a = tokenization.convert_to_unicode(str(dev[1]))
-            text_b = tokenization.convert_to_unicode(str(dev[2]))
-            label = str(dev[3])
-            dev_data.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
-        return dev_data
+        with open(file_path, 'r', encoding='utf-8') as dev_f:
+            dev_dt = dev_f.readlines()
+
+            for i in range(len(dev_dt)):
+                row_data = dev_dt[i].strip().split('\t')
+                guid = 'dev-%d' % i
+                text_a = tokenization.convert_to_unicode(row_data[0])
+                text_b = tokenization.convert_to_unicode(row_data[1])
+                label = str(row_data[2])
+                dev_data.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+            return dev_data
 
     def get_test_examples(self, data_dir):
         file_path = os.path.join(data_dir, 'test.txt')
-        test_df = pd.read_csv(file_path, encoding='utf-8', sep='\t', header=None)
         test_data = []
-        for index, test in enumerate(test_df.values):
-            guid = 'test-%d' % index
-            text_a = tokenization.convert_to_unicode(str(test[1]))
-            text_b = tokenization.convert_to_unicode(str(test[2]))
-            label = str(test[3])
-            test_data.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
-        return test_data
+        with open(file_path, 'r', encoding='utf-8') as test_f:
+            dev_dt = test_f.readlines()
+
+            for i in range(len(dev_dt)):
+                row_data = dev_dt[i].strip().split('\t')
+                guid = 'test-%d' % i
+                text_a = tokenization.convert_to_unicode(row_data[0])
+                text_b = tokenization.convert_to_unicode(row_data[1])
+                label = str(row_data[2])
+                test_data.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+            return test_data
 
     def get_sentence_examples(self, questions):
         for index, data in enumerate(questions):
@@ -145,7 +155,7 @@ class BertSim():
         if mode == tf.estimator.ModeKeys.PREDICT:
             self.input_queue = Queue(maxsize=1)
             self.output_queue = Queue(maxsize=1)
-            self.predict_thread = Thread(target=self.predict_from_queue, daemon=True)#daemon守护进程
+            self.predict_thread = Thread(target=self.predict_from_queue, daemon=True)   #daemon守护进程
             self.predict_thread.start()
 
     def create_model(bert_config, is_training, input_ids, input_mask, segment_ids,
@@ -508,7 +518,7 @@ class BertSim():
         assert len(input_mask) == max_seq_length
         assert len(segment_ids) == max_seq_length
 
-        label_id = label_map[ example.label]
+        label_id = label_map[example.label]
         if ex_index < 5:
             tf.compat.v1.logging.info("*** Example ***")
             tf.compat.v1.logging.info("guid: %s" % (example.guid))
@@ -529,7 +539,7 @@ class BertSim():
     def file_based_convert_examples_to_features(self, examples, label_list, max_seq_length, tokenizer, output_file):
         """Convert a set of `InputExample`s to a TFRecord file."""
 
-        writer = tf.python_io.TFRecordWriter(output_file)
+        writer = tf.io.TFRecordWriter(output_file)
 
         for (ex_index, example) in enumerate(examples):
             if ex_index % 10000 == 0:
@@ -674,19 +684,19 @@ class BertSim():
         return prediction
 
 
-# if __name__ == '__main__':
-#     sim = BertSim()
-#     if cf.do_train:
-#         sim.set_mode(tf.estimator.ModeKeys.TRAIN)
-#         sim.train()
-#         sim.set_mode(tf.estimator.ModeKeys.EVAL)
-#         sim.eval()
-#     if cf.do_predict:
-#         sim.set_mode(tf.estimator.ModeKeys.PREDICT)
-#         # while True:
-#         # sentence1 = input('sentence1: ')
-#         # sentence2 = input('sentence2: ')
-#         sentence1 = '十万预算买什么车好？'
-#         sentence2 = '保险一般都哪些种类？'
-#         predict = sim.predict(sentence1, sentence2)
-#         print(predict[0][1])
+if __name__ == '__main__':
+    sim = BertSim()
+    if cf.do_train:
+        sim.set_mode(tf.estimator.ModeKeys.TRAIN)
+        sim.train()
+        sim.set_mode(tf.estimator.ModeKeys.EVAL)
+        sim.eval()
+    if cf.do_predict:
+        sim.set_mode(tf.estimator.ModeKeys.PREDICT)
+        # while True:
+        # sentence1 = input('sentence1: ')
+        # sentence2 = input('sentence2: ')
+        sentence1 = '你今年几岁'
+        sentence2 = '哈哈哈'
+        predict = sim.predict(sentence1, sentence2)
+        print(predict[0][1])
