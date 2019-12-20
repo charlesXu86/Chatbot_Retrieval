@@ -12,20 +12,20 @@
 @Desc    :   基于bert的语义相似度匹配
 
 '''
+
 import os
 from queue import Queue
 from threading import Thread
 
-import pandas as pd
 import tensorflow as tf
 import collections
-from Chatbot_Retrieval_model.Bert_sim.config import Config
+from Chatbot_Retrieval_model.Bert_sim.config_bert import Config
 
 from bert4tf import modeling
 from bert4tf import tokenization
 from bert4tf import optimization
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3'
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 cf = Config()
 
 class InputExample(object):
@@ -158,7 +158,7 @@ class BertSim():
             self.predict_thread = Thread(target=self.predict_from_queue, daemon=True)   #daemon守护进程
             self.predict_thread.start()
 
-    def create_model(bert_config, is_training, input_ids, input_mask, segment_ids,
+    def create_model(self, bert_config, is_training, input_ids, input_mask, segment_ids,
                      labels, num_labels, use_one_hot_embeddings):
         """Creates a classification model."""
         model = modeling.BertModel(
@@ -171,10 +171,14 @@ class BertSim():
 
         # In the demo, we are doing a simple classification task on the entire
         # segment.
-        #
-        # If you want to use the token-level output, use model.get_sequence_output()
-        # instead.
-        output_layer = model.get_pooled_output()
+
+        # z这里是一个可以优化的点
+        # 1、If you want to use the token-level output, use model.get_sequence_output() instead.
+        # 2、
+        # output_layer = model.get_pooled_output()              #
+        # output_layer = model.get_sequence_output()            # 获得encoder的最后一个隐层  [batch_size, seq_length, hidden_size]
+        output_layer = tf.concat([tf.squeeze(model.all_encoder_layers[i][:, 0:1, :], axis=1) for i in range(-4, 0, 1)],
+                                 axis=-1)
 
         hidden_size = output_layer.shape[-1].value
 
@@ -221,7 +225,7 @@ class BertSim():
 
             is_training = (mode == tf.estimator.ModeKeys.TRAIN)
 
-            (total_loss, per_example_loss, logits, probabilities) = BertSim.create_model(
+            (total_loss, per_example_loss, logits, probabilities) = self.create_model(
                 bert_config, is_training, input_ids, input_mask, segment_ids, label_ids,
                 num_labels, use_one_hot_embeddings)
 
@@ -618,7 +622,7 @@ class BertSim():
                 "was only trained up to sequence length %d" %
                 (cf.max_seq_length, bert_config.max_position_embeddings))
 
-        tf.gfile.MakeDirs(cf.output_dir)
+        tf.io.gfile.makedirs(cf.output_dir)
 
         label_list = self.processor.get_labels()
 
@@ -684,19 +688,19 @@ class BertSim():
         return prediction
 
 
-if __name__ == '__main__':
-    sim = BertSim()
-    if cf.do_train:
-        sim.set_mode(tf.estimator.ModeKeys.TRAIN)
-        sim.train()
-        sim.set_mode(tf.estimator.ModeKeys.EVAL)
-        sim.eval()
-    if cf.do_predict:
-        sim.set_mode(tf.estimator.ModeKeys.PREDICT)
+# if __name__ == '__main__':
+#     sim = BertSim()
+#     if cf.do_train:
+#         sim.set_mode(tf.estimator.ModeKeys.TRAIN)
+#         sim.train()
+#         sim.set_mode(tf.estimator.ModeKeys.EVAL)
+#         sim.eval()
+#     if cf.do_predict:
+#         sim.set_mode(tf.estimator.ModeKeys.PREDICT)
         # while True:
         # sentence1 = input('sentence1: ')
         # sentence2 = input('sentence2: ')
-        sentence1 = '你今年几岁'
-        sentence2 = '哈哈哈'
-        predict = sim.predict(sentence1, sentence2)
-        print(predict[0][1])
+        # sentence1 = '你多大了'
+        # sentence2 = '成都哪里好玩'
+        # predict = sim.predict(sentence1, sentence2)
+        # print(predict[0][0], predict[0][1])
