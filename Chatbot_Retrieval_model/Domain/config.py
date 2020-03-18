@@ -5,7 +5,7 @@
  
 @Software:   PyCharm
  
-@File    :   config.py
+@File    :   config_bert.py
  
 @Time    :   2019-10-29 17:35
  
@@ -42,15 +42,14 @@ class Config():
         self.task_name = 'domain'
         self.gpu_memory_fraction = 0.8
 
-        self.max_seq_length = 128
+        self.max_seq_length = 100
         self.doc_stride = 128
         self.max_query_length = 64
-
-
-        self.do_train = True
-        self.do_predict = False
+        self.do_train = False
+        self.do_predict = True
         self.do_eval = True
         self.batch_size = 20
+
         self.learning_rate = 5e-5
         self.num_train_epochs = 3.0
         self.warmup_proportion = 0.1

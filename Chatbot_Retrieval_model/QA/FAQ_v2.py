@@ -9,21 +9,33 @@
  
 @Time    :   2019-10-30 14:26
  
-@Desc    :
+@Desc    :   答案的语义匹配
  
 '''
 
 import os
 import logging
 import jieba
+import json
 import jieba.posseg as pseg
+import tensorflow as tf
 from collections import deque
+from Chatbot_Retrieval_model.QA.ConnRedis import RedisDatabase
+
+# from Chatbot_Retrieval_model.Bert_sim.run_similarity import BertSim
 
 from Chatbot_Retrieval_model.QA.utils import (get_logger, similarity)
 
 jieba.dt.tmp_dir = "./"
 jieba.default_logger.setLevel(logging.ERROR)
 logger = get_logger('faqrobot', logfile="faqrobot.log")
+
+
+# 初始化语义相似度匹配模型
+# bs = BertSim()
+# bs.set_mode(tf.estimator.ModeKeys.PREDICT)
+
+db = RedisDatabase()
 
 class zhishiku():
     def __init__(self, q):
@@ -37,7 +49,7 @@ class zhishiku():
         return 'q=' + str(self.q) + '\na=' + str(self.a) + '\nq_word=' + str(self.q_word) + '\nq_vec=' + str(self.q_vec)
 
 class FAQ(object):
-    def __init__(self, zhishitxt='FAQ.txt', lastTxtLen=10, usedVec=True):
+    def __init__(self, zhishitxt=None, lastTxtLen=10, usedVec=True):
         # usedVec 如果是True 在初始化时会解析词向量，加快计算句子相似度的速度
         self.lastTxt = deque([], lastTxtLen)
         self.zhishitxt = zhishitxt
@@ -45,46 +57,42 @@ class FAQ(object):
         self.reload()
 
     def load_qa(self):
+        '''
+        加载问答知识库，连接redis
+        :return:
+        '''
         # print('问答知识库开始载入')
         self.zhishiku = []
-        with open(self.zhishitxt, encoding='utf-8') as f:
-            txt = f.readlines()
-            abovetxt = 0    # 上一行的种类： 0空白/注释  1答案   2问题
-            for t in txt:   # 读取FAQ文本文件
-                t = t.strip()
-                if not t or t.startswith('#'):
-                    abovetxt = 0
-                elif abovetxt != 2:
-                    if t.startswith('【问题】'): # 输入第一个问题
-                        self.zhishiku.append(zhishiku(t[4:]))
-                        abovetxt = 2
-                    else:       # 输入答案文本（非第一行的）
-                        self.zhishiku[-1].a += '\n' + t
-                        abovetxt = 1
-                else:
-                    if t.startswith('【问题】'): # 输入问题（非第一行的）
-                        self.zhishiku[-1].q.append(t[4:])
-                        abovetxt = 2
-                    else:       # 输入答案文本
-                        self.zhishiku[-1].a += t
-                        abovetxt = 1
+        # with open(self.zhishitxt, 'r') as f:
+        #     data = json.load(f)
+        #     abovetxt = 0    # 上一行的种类： 0空白/注释  1答案   2问题
+        #     for item in data:
+        #         question = item['ques']
+        #         anwser = item['anwser']
+        #         self.zhishiku.append(zhishiku(question))
+        #         self.zhishiku[-1].a += anwser
+        #         print(question)
+        data = db.r.lrange('faq', 0, -1)
+        for item in data:
+            item = json.loads(item)
+            question = item['question']
+            anwser = item['anwser']
+            self.zhishiku.append(zhishiku(question))
+            self.zhishiku[-1].a += anwser
 
         for t in self.zhishiku:
             for question in t.q:
                 t.q_word.append(set(jieba.cut(question)))
 
-    def load_embedding(self):
-        from gensim.models import Word2Vec
-        if not os.path.exists('Word60.model'):
-            self.vecModel = None
-            return
 
-        # 载入60维的词向量(Word60.model，Word60.model.syn0.npy，Word60.model.syn1neg.npy）
-        self.vecModel = Word2Vec.load('Word60.model')
-        for t in self.zhishiku:
-            t.q_vec = []
-            for question in t.q_word:
-                t.q_vec.append({t for t in question if t in self.vecModel.index2word})
+    def load_embedding(self):
+        '''
+        加载bert语义匹配
+        :return:
+        '''
+        from Chatbot_Retrieval_model.Bert_sim.run_similarity_bert import BertSim
+
+        self.vecModel = BertSim()
 
     def reload(self):
         self.load_qa()
@@ -95,6 +103,7 @@ class FAQ(object):
     def maxSimTxt(self, intxt, simCondision=0.15, simType='simple'):
         '''
         找出知识库里的和输入句子相似度最高的句子
+
         :param intxt: 输入文本
         :param simCondision: 相似度阈值
         :param simType:
@@ -141,8 +150,9 @@ class FAQ(object):
             # 输出回复内容，并计入日志
         return outtxt
 
+
 if __name__ == '__main__':
-    data = '/home/xsq/nlp_code/Chatbot_Retrieval/data/FAQ/FAQ.txt'
+    data = '/home/xsq/nlp_code/Chatbot_Retrieval/data/FAQ/FAQ_baoxian.json'
     robot = FAQ(data, usedVec=False)
     while True:
         print('回复：' + robot.answer(input('输入：'), 'simple_pos') + '\n')

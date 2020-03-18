@@ -27,7 +27,7 @@ from bert4tf import tokenization
 from Chatbot_Retrieval_model.Domain.config import Config
 
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '3'
 
 basedir = str(pathlib.Path(os.path.abspath(__file__)).parent)
 
@@ -211,7 +211,7 @@ class DomainCLS():
         # In the demo, we are doing a simple classification task on the entire segment.
         #
         # If you want to use the token-level output, use model.get_sequence_output() instead.
-        # embedding_layer = model.get_sequence_output()
+        # embedding_layer = model.get_sequence_output()      # 获取embedding，类似embedding_lookup操作， 后面可以接 crf
         output_layer = model.get_pooled_output()
 
         hidden_size = output_layer.shape[-1].value
@@ -822,6 +822,7 @@ class DomainCLS():
             raise ValueError("Please set the 'mode' parameter")
         self.input_queue.put([sentence])
         label = self.get_label_list()
+        # probsss = int(np.argmax(self.output_queue.get()['probabilities']))
         prediction = label[int(np.argmax(self.output_queue.get()['probabilities']))]
         return prediction
 
@@ -829,11 +830,11 @@ class DomainCLS():
     # save_PBmodel(len(label_list))  # 生成单个pb模型。
 # if __name__ == '__main__':
 #     cls = DomainCLS()
-#     if cf.do_train:
-#         cls.set_mode(tf.estimator.ModeKeys.TRAIN)
-#         cls.train()
-#         cls.set_mode(tf.estimator.ModeKeys.EVAL)
-#         cls.eval()
+    # if cf.do_train:
+    #     cls.set_mode(tf.estimator.ModeKeys.TRAIN)
+    #     cls.train()
+    #     cls.set_mode(tf.estimator.ModeKeys.EVAL)
+    #     cls.eval()
     # if cf.do_predict:
     #     cls.set_mode(tf.estimator.ModeKeys.PREDICT)
     #     sentence = '你们店在哪里，给我发个定位'

@@ -18,8 +18,9 @@ import os
 import tensorflow as tf
 import numpy as np
 
-from Chatbot_Retrieval_model.QA.FAQ import FAQ
-from Chatbot_Retrieval_model.Bert_sim.run_similarity import BertSim   # Bert语义相似度
+# from Chatbot_Retrieval_model.QA.FAQ import FAQ
+from Chatbot_Retrieval_model.QA.FAQ_v2 import FAQ
+from Chatbot_Retrieval_model.Bert_sim.run_similarity_bert import BertSim   # Bert语义相似度
 from Chatbot_Retrieval_model.Domain.domain_classifier_v2 import DomainCLS   # Domain 分类
 from Chatbot_Retrieval_model.util.logutil import Logger
 
@@ -30,7 +31,8 @@ baseDir = str(pathlib.Path(os.path.abspath(__file__)).parent.parent.parent)
 
 loginfo = Logger('FAQ_log', 'info')
 
-data = baseDir + '/data/FAQ/FAQ.txt'
+# data = baseDir + '/data/FAQ/FAQ.txt'
+data = baseDir + '/data/FAQ/FAQ_baoxian.json'
 
 bs = BertSim()
 bs.set_mode(tf.estimator.ModeKeys.PREDICT)
@@ -42,16 +44,17 @@ def get_anwser(msg):
 
     resul = {
         'domain':'',
-        'anwser':''
+        'anwser':'',
+        'pull_back': 0    # 拉回方式   0 是同级关系， 1 是顺承关系，默认为0
     }
 
     robot = FAQ(data, usedVec=False)
 
     anwser = robot.answer(msg, 'simple_pos')
 
-    sen2 = '我想买保险'
-    predict = bs.predict(msg, sen2)
-    result = predict[0][1]
+    # sen2 = '我想买保险'
+    # predict = bs.predict(msg, sen2)
+    # result = predict[0][1]
 
     domain_result = dc.predict(msg)
     resul['domain'] = domain_result

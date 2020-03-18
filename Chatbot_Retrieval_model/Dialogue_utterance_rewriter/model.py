@@ -469,7 +469,7 @@ class SummarizationModel(object):
         """Sets self._train_op, the op to run for training."""
         # Take gradients of the trainable variables w.r.t. the loss function to minimize
         loss_to_minimize = self._total_loss if self._hps.coverage else self._loss
-        tvars = tf.trainable_variables()
+        tvars = tf.compat.v1.trainable_variables()
         gradients = tf.gradients(
             loss_to_minimize,
             tvars,
@@ -480,7 +480,7 @@ class SummarizationModel(object):
                                                     self._hps.max_grad_norm)
 
         # Add a summary
-        tf.summary.scalar('global_norm', global_norm)
+        tf.compat.v1.summary.scalar('global_norm', global_norm)
 
         optimizer = tf.compat.v1.train.AdagradOptimizer(
             self._hps.learning_rate,

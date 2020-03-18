@@ -25,7 +25,7 @@ from bert4tf import modeling
 from bert4tf import tokenization
 from bert4tf import optimization
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0,3'
 cf = Config()
 
 class InputExample(object):

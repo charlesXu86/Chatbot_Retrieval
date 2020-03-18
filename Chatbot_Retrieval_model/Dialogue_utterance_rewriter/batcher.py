@@ -45,14 +45,13 @@ class Example(object):
         start_decoding = vocab.word2id(MARK_GO)
         stop_decoding = vocab.word2id(MARK_EOS)
 
-        context_words = context + [MARK_EOS]     # 这里的数据类型
-        print(context_words)
+        context_words = context + MARK_EOS    # 这里的数据类型
         # if len(context_words) > hps.max_enc_steps:
         #     context_words = context_words[:hps.max_enc_steps]
         self.enc_len = len(context_words)
         self.enc_input = [vocab.word2id(w) for w in context_words]
 
-        query_words = query + [MARK_EOS] # + ' '
+        query_words = query + MARK_EOS # + ' '
         self.query_len = len(query_words)
         self.query_input = [vocab.word2id(w) for w in query_words]
 
