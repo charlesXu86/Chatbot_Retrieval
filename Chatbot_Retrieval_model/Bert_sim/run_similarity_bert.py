@@ -7,26 +7,26 @@
 
 @File    :   utils.py
 
-@Time    :   2019-10-30 14:27
+@Time    :   2019-12-14 14:27
 
-@Desc    :   基于bert的语义相似度匹配
+@Desc    :   基于bert的语义相似度匹配模型
 
 '''
+
 import os
 from queue import Queue
 from threading import Thread
 
-import pandas as pd
 import tensorflow as tf
 import collections
-from Chatbot_Retrieval_model.Bert_sim.config import Config
+from Chatbot_Retrieval_model.Bert_sim.config_bert import Config
 
-from bert4tf import modeling
-from bert4tf import tokenization
-from bert4tf import optimization
+from Chatbot_Retrieval_model.bert import modeling
+from Chatbot_Retrieval_model.bert import tokenization
+from Chatbot_Retrieval_model.bert import optimization
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3'
 cf = Config()
+
 
 class InputExample(object):
     """A single training/test example for simple sequence classification."""
@@ -81,39 +81,49 @@ class DataProcessor(object):
 class SimProcessor(DataProcessor):
     def get_train_examples(self, data_dir):
         file_path = os.path.join(data_dir, 'train.txt')
-        train_df = pd.read_csv(file_path, encoding='utf-8', sep='\t', header=None)
+        # train_df = pd.read_csv(file_path, encoding='utf-8', sep='\t', header=None)
         train_data = []
-        for index, train in enumerate(train_df.values):
-            guid = 'train-%d' % index
-            text_a = tokenization.convert_to_unicode(str(train[1]))
-            text_b = tokenization.convert_to_unicode(str(train[2]))
-            label = str(train[3])
-            train_data.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
-        return train_data
+        with open(file_path, 'r', encoding='utf-8') as train_f:
+            train_dt = train_f.readlines()
+
+            for i in range(len(train_dt)):
+                row_data = train_dt[i].strip().split('\t')
+                guid = 'train-%d' % i
+                text_a = tokenization.convert_to_unicode(row_data[0])
+                text_b = tokenization.convert_to_unicode(row_data[1])
+                label = str(row_data[2])
+                train_data.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+            return train_data
 
     def get_dev_examples(self, data_dir):
         file_path = os.path.join(data_dir, 'dev.txt')
-        dev_df = pd.read_csv(file_path, encoding='utf-8', sep='\t', header=None)
         dev_data = []
-        for index, dev in enumerate(dev_df.values):
-            guid = 'test-%d' % index
-            text_a = tokenization.convert_to_unicode(str(dev[1]))
-            text_b = tokenization.convert_to_unicode(str(dev[2]))
-            label = str(dev[3])
-            dev_data.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
-        return dev_data
+        with open(file_path, 'r', encoding='utf-8') as dev_f:
+            dev_dt = dev_f.readlines()
+
+            for i in range(len(dev_dt)):
+                row_data = dev_dt[i].strip().split('\t')
+                guid = 'dev-%d' % i
+                text_a = tokenization.convert_to_unicode(row_data[0])
+                text_b = tokenization.convert_to_unicode(row_data[1])
+                label = str(row_data[2])
+                dev_data.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+            return dev_data
 
     def get_test_examples(self, data_dir):
         file_path = os.path.join(data_dir, 'test.txt')
-        test_df = pd.read_csv(file_path, encoding='utf-8', sep='\t', header=None)
         test_data = []
-        for index, test in enumerate(test_df.values):
-            guid = 'test-%d' % index
-            text_a = tokenization.convert_to_unicode(str(test[1]))
-            text_b = tokenization.convert_to_unicode(str(test[2]))
-            label = str(test[3])
-            test_data.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
-        return test_data
+        with open(file_path, 'r', encoding='utf-8') as test_f:
+            dev_dt = test_f.readlines()
+
+            for i in range(len(dev_dt)):
+                row_data = dev_dt[i].strip().split('\t')
+                guid = 'test-%d' % i
+                text_a = tokenization.convert_to_unicode(row_data[0])
+                text_b = tokenization.convert_to_unicode(row_data[1])
+                label = str(row_data[2])
+                test_data.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+            return test_data
 
     def get_sentence_examples(self, questions):
         for index, data in enumerate(questions):
@@ -136,7 +146,7 @@ class BertSim():
         self.tokenizer = tokenization.FullTokenizer(vocab_file=cf.vocab_file, do_lower_case=True)
         self.batch_size = batch_size
         self.estimator = None
-        self.processor = SimProcessor()    # 加载训练、测试数据class
+        self.processor = SimProcessor()  # 加载训练、测试数据class
         tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
 
     def set_mode(self, mode):
@@ -145,10 +155,10 @@ class BertSim():
         if mode == tf.estimator.ModeKeys.PREDICT:
             self.input_queue = Queue(maxsize=1)
             self.output_queue = Queue(maxsize=1)
-            self.predict_thread = Thread(target=self.predict_from_queue, daemon=True)#daemon守护进程
+            self.predict_thread = Thread(target=self.predict_from_queue, daemon=True)  # daemon守护进程
             self.predict_thread.start()
 
-    def create_model(bert_config, is_training, input_ids, input_mask, segment_ids,
+    def create_model(self, bert_config, is_training, input_ids, input_mask, segment_ids,
                      labels, num_labels, use_one_hot_embeddings):
         """Creates a classification model."""
         model = modeling.BertModel(
@@ -161,10 +171,14 @@ class BertSim():
 
         # In the demo, we are doing a simple classification task on the entire
         # segment.
-        #
-        # If you want to use the token-level output, use model.get_sequence_output()
-        # instead.
-        output_layer = model.get_pooled_output()
+
+        # z这里是一个可以优化的点
+        # 1、If you want to use the token-level output, use model.get_sequence_output() instead.
+        # 2、
+        # output_layer = model.get_pooled_output()              #
+        # output_layer = model.get_sequence_output()            # 获得encoder的最后一个隐层  [batch_size, seq_length, hidden_size]
+        output_layer = tf.concat([tf.squeeze(model.all_encoder_layers[i][:, 0:1, :], axis=1) for i in range(-4, 0, 1)],
+                                 axis=-1)
 
         hidden_size = output_layer.shape[-1].value
 
@@ -211,7 +225,7 @@ class BertSim():
 
             is_training = (mode == tf.estimator.ModeKeys.TRAIN)
 
-            (total_loss, per_example_loss, logits, probabilities) = BertSim.create_model(
+            (total_loss, per_example_loss, logits, probabilities) = self.create_model(
                 bert_config, is_training, input_ids, input_mask, segment_ids, label_ids,
                 num_labels, use_one_hot_embeddings)
 
@@ -219,7 +233,8 @@ class BertSim():
             initialized_variable_names = {}
 
             if init_checkpoint:
-                (assignment_map, initialized_variable_names) = modeling.get_assignment_map_from_checkpoint(tvars, init_checkpoint)
+                (assignment_map, initialized_variable_names) = modeling.get_assignment_map_from_checkpoint(tvars,
+                                                                                                           init_checkpoint)
                 tf.compat.v1.train.init_from_checkpoint(init_checkpoint, assignment_map)
 
             tf.compat.v1.logging.info("**** Trainable Variables ****")
@@ -228,7 +243,7 @@ class BertSim():
                 if var.name in initialized_variable_names:
                     init_string = ", *INIT_FROM_CKPT*"
                 tf.compat.v1.logging.info("  name = %s, shape = %s%s", var.name, var.shape,
-                                init_string)
+                                          init_string)
 
             if mode == tf.estimator.ModeKeys.TRAIN:
 
@@ -275,10 +290,11 @@ class BertSim():
         num_train_steps = int(len(train_examples) / self.batch_size * cf.num_train_epochs)
         num_warmup_steps = int(num_train_steps * 0.1)
 
-        if self.mode == tf.estimator.ModeKeys.TRAIN:
+        # if self.mode == tf.estimator.ModeKeys.TRAIN:
+        if self.mode == 'infer':
             init_checkpoint = cf.init_checkpoint
         else:
-            init_checkpoint = cf.output_dir   # 预测模式下加载
+            init_checkpoint = cf.output_dir  # 预测模式下加载
 
         model_fn = self.model_fn_builder(
             bert_config=bert_config,
@@ -508,7 +524,7 @@ class BertSim():
         assert len(input_mask) == max_seq_length
         assert len(segment_ids) == max_seq_length
 
-        label_id = label_map[ example.label]
+        label_id = label_map[example.label]
         if ex_index < 5:
             tf.compat.v1.logging.info("*** Example ***")
             tf.compat.v1.logging.info("guid: %s" % (example.guid))
@@ -529,7 +545,7 @@ class BertSim():
     def file_based_convert_examples_to_features(self, examples, label_list, max_seq_length, tokenizer, output_file):
         """Convert a set of `InputExample`s to a TFRecord file."""
 
-        writer = tf.python_io.TFRecordWriter(output_file)
+        writer = tf.io.TFRecordWriter(output_file)
 
         for (ex_index, example) in enumerate(examples):
             if ex_index % 10000 == 0:
@@ -555,10 +571,10 @@ class BertSim():
         """Creates an `input_fn` closure to be passed to TPUEstimator."""
 
         name_to_features = {
-            "input_ids": tf.FixedLenFeature([seq_length], tf.int64),
-            "input_mask": tf.FixedLenFeature([seq_length], tf.int64),
-            "segment_ids": tf.FixedLenFeature([seq_length], tf.int64),
-            "label_ids": tf.FixedLenFeature([], tf.int64),
+            "input_ids": tf.io.FixedLenFeature([seq_length], tf.int64),
+            "input_mask": tf.io.FixedLenFeature([seq_length], tf.int64),
+            "segment_ids": tf.io.FixedLenFeature([seq_length], tf.int64),
+            "label_ids": tf.io.FixedLenFeature([], tf.int64),
         }
 
         def _decode_record(record, name_to_features):
@@ -608,7 +624,7 @@ class BertSim():
                 "was only trained up to sequence length %d" %
                 (cf.max_seq_length, bert_config.max_position_embeddings))
 
-        tf.gfile.MakeDirs(cf.output_dir)
+        tf.io.gfile.makedirs(cf.output_dir)
 
         label_list = self.processor.get_labels()
 
@@ -660,7 +676,7 @@ class BertSim():
         result = estimator.evaluate(input_fn=eval_input_fn, steps=None)
 
         output_eval_file = os.path.join(cf.output_dir, "eval_results.txt")
-        with tf.gfile.GFile(output_eval_file, "w") as writer:
+        with tf.io.gfile.GFile(output_eval_file, "w") as writer:
             tf.compat.v1.logging.info("***** Eval results *****")
             for key in sorted(result.keys()):
                 tf.compat.v1.logging.info("  %s = %s", key, str(result[key]))
@@ -674,19 +690,19 @@ class BertSim():
         return prediction
 
 
-# if __name__ == '__main__':
-#     sim = BertSim()
-#     if cf.do_train:
-#         sim.set_mode(tf.estimator.ModeKeys.TRAIN)
-#         sim.train()
-#         sim.set_mode(tf.estimator.ModeKeys.EVAL)
-#         sim.eval()
-#     if cf.do_predict:
-#         sim.set_mode(tf.estimator.ModeKeys.PREDICT)
-#         # while True:
-#         # sentence1 = input('sentence1: ')
-#         # sentence2 = input('sentence2: ')
-#         sentence1 = '十万预算买什么车好？'
-#         sentence2 = '保险一般都哪些种类？'
-#         predict = sim.predict(sentence1, sentence2)
-#         print(predict[0][1])
+if __name__ == '__main__':
+    sim = BertSim()
+    if cf.do_train:
+        sim.set_mode(tf.estimator.ModeKeys.TRAIN)
+        sim.train()
+        sim.set_mode(tf.estimator.ModeKeys.EVAL)
+        sim.eval()
+    # if cf.do_predict:
+    #     sim.set_mode(tf.estimator.ModeKeys.PREDICT)
+    #     while True:
+    #         # sentence1 = input('sentence1: ')
+    #         # sentence2 = input('sentence2: ')
+    #         sentence1 = '你多大了'
+    #         sentence2 = '成都哪里好玩'
+    #         predict = sim.predict(sentence1, sentence2)
+    #         print(predict[0][0], predict[0][1])

@@ -5,7 +5,7 @@
  
 @Software:   PyCharm
  
-@File    :   config.py
+@File    :   config_bert.py
  
 @Time    :   2019-10-29 17:35
  

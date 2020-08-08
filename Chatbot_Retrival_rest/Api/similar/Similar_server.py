@@ -18,24 +18,31 @@ import json
 import logging
 import datetime
 
-from Chatbot_Retrieval_model.QA.dialogue_predict import get_anwser
+# from Chatbot_Retrival_rest.Api.similar.Get_similar import get_similar_res_bert
+# from Chatbot_Retrival_rest.Api.similar.Get_similar_albert import get_similar_res_albert
 
 from Chatbot_Retrival_rest.Api.utils.LogUtils import Logger
 
 logger = logging.getLogger(__name__)
 
 
-def qa_server(request):
+def sim_server(request):
     if request.method == 'POST':
 
         try:
             jsonData = json.loads(request.body.decode('utf-8'))
-            msg = jsonData["msg"]
+            sen1 = jsonData["msg1"]
+            sen2 = jsonData["msg2"]
+            model = jsonData["model"]
             localtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            result = get_anwser(msg)
+
+            # result = get_similar_res_bert(sen1, sen2)
+            result = ''
             dic = {
                 "desc": "Success",
-                "ques": msg,
+                "ques1": sen1,
+                "ques2": sen2,
+                "model":  model,
                 "result": result,
                 "time": localtime
             }
