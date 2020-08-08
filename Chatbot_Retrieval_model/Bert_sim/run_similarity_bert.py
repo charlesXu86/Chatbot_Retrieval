@@ -25,7 +25,6 @@ from Chatbot_Retrieval_model.bert import modeling
 from Chatbot_Retrieval_model.bert import tokenization
 from Chatbot_Retrieval_model.bert import optimization
 
-# os.environ['CUDA_VISIBLE_DEVICES'] = '0,3'
 cf = Config()
 
 
