@@ -5,7 +5,7 @@
  
 @Software:   PyCharm
  
-@File    :   config.py
+@File    :   config_bert.py
  
 @Time    :   2019-10-29 17:35
  
@@ -22,7 +22,7 @@ class Config():
     def __init__(self):
         self.bert_config_file = '/Data/public/Bert/chinese_L-12_H-768_A-12/bert_config.json'
         self.vocab_file = '/Data/public/Bert/chinese_L-12_H-768_A-12/vocab.txt'
-        self.data_dir = os.path.join(basedir, 'data/bert_sim/')
+        self.data_dir = os.path.join(basedir, 'data/dialogue_rewrite/corpus.txt')
         self.output_dir = basedir + '/Chatbot_Retrieval_model/Bert_sim/results'
         self.predict_file = basedir + '/data/bert_sim/dev.txt'
         self.test_file = basedir + '/data/bert_sim/test.txt'
@@ -60,3 +60,29 @@ class Config():
         self.max_answer_length = 30
         self.eval_batch_size = 16
         # self.do_eval = False
+
+        self.mode = 'train'
+        self.encoder_type = 'bi'
+        self.hidden_dim = 256
+        self.emb_dim = 128
+        self.max_enc_steps = 50    # max timesteps of encoder (max source text tokens)
+        self.max_dec_steps = 30    # max timesteps of decoder (max summary tokens)
+        self.beam_size = 4
+        self.min_dec_steps = 5
+        self.single_pass = False
+        self.learning_rate = 0.15
+        self.adagrad_init_acc = 0.1
+        self.rand_unif_init_mag = 0.02
+        self.trunc_norm_init_std = 1e-4
+        self.max_grad_norm = 2.0
+        self.pointer_gen = True
+        self.coverage = False
+        self.cov_loss_wt = 1.0
+        self.convert_to_coverage_model = False
+        self.restore_best_model = False
+        self.debug = False
+        self.log_root = './log'
+        self.exp_name = 'extractive'
+        self.vocab_size = 28000
+
+
