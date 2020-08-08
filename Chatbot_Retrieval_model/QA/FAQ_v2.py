@@ -17,6 +17,8 @@ import os
 import logging
 import jieba
 import json
+import ast
+from itertools import product
 import jieba.posseg as pseg
 import tensorflow as tf
 from collections import deque
@@ -72,13 +74,16 @@ class FAQ(object):
         #         self.zhishiku.append(zhishiku(question))
         #         self.zhishiku[-1].a += anwser
         #         print(question)
+        # data = db.r.lrange('P_ACS_NEVER_MORE:464812905667379226', 0, -1)
         data = db.r.lrange('faq', 0, -1)
         for item in data:
             item = json.loads(item)
+            # item = ast.literal_eval(json.loads(item))
             question = item['question']
-            anwser = item['anwser']
+            answer = item['answer']
+
             self.zhishiku.append(zhishiku(question))
-            self.zhishiku[-1].a += anwser
+            self.zhishiku[-1].a += answer
 
         for t in self.zhishiku:
             for question in t.q:
@@ -90,9 +95,9 @@ class FAQ(object):
         加载bert语义匹配
         :return:
         '''
-        from Chatbot_Retrieval_model.Bert_sim.run_similarity_bert import BertSim
+        # from Chatbot_Retrieval_model.Bert_sim.run_similarity_bert import BertSim
 
-        self.vecModel = BertSim()
+        self.vecModel = ''
 
     def reload(self):
         self.load_qa()
@@ -130,9 +135,9 @@ class FAQ(object):
         logger.info('maxSim=' + format(maxSim.sim, '.0%'))
 
         if maxSim.sim < simCondision:
-            return '抱歉，我没有理解您的意思。请您询问有关汽车的话题。'
+            return [''], ''
 
-        return maxSim.a
+        return maxSim.q, maxSim.a
 
     def answer(self, intxt, simType='simple'):
         """simType=simple, simple_POS, vec, all"""

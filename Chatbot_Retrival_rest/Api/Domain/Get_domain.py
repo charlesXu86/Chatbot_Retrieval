@@ -2,15 +2,15 @@
 
 '''
 @Author  :   Xu
- 
+
 @Software:   PyCharm
- 
+
 @File    :   Get_domain.py
- 
+
 @Time    :   2019-12-11 11:43
- 
+
 @Desc    :   获取domain预测的结果
- 
+
 '''
 
 import tensorflow as tf

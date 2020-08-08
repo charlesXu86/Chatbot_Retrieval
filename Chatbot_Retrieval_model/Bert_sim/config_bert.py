@@ -20,11 +20,11 @@ basedir = str(pathlib.Path(os.path.abspath(__file__)).parent.parent.parent)
 class Config():
 
     def __init__(self):
-        self.bert_config_file = '/Data/public/Bert/chinese_wwm_ext_L-12_H-768_A-12/bert_config.json'
-        self.vocab_file = '/Data/public/Bert/chinese_wwm_ext_L-12_H-768_A-12/vocab.txt'
+        self.bert_config_file = '/Data/public/pretrained_models/tensorflow1.x/chinese-bert-wwm-ext/bert_config.json'
+        self.vocab_file = '/Data/public/pretrained_models/tensorflow1.x/chinese-bert-wwm-ext/vocab.txt'
         self.data_dir = os.path.join(basedir, 'data/bert_sim/')
         self.output_dir = basedir + '/Chatbot_Retrieval_model/Bert_sim/saved_model_bert'
-        self.init_checkpoint = '/Data/public/Bert/chinese_wwm_ext_L-12_H-768_A-12/bert_model.ckpt'
+        self.init_checkpoint = '/Data/public/pretrained_models/tensorflow1.x/chinese-bert-wwm-ext/bert_model.ckpt'
 
         self.do_lower_case = True
         self.verbose_logging = False
@@ -40,9 +40,9 @@ class Config():
         self.gpu_memory_fraction = 0.8
         self.max_seq_length = 128
 
-        self.do_train = False
-        self.do_predict = True
-        self.batch_size = 16
+        self.do_train = True
+        self.do_predict = False
+        self.batch_size = 64
         self.learning_rate = 5e-5
         self.num_train_epochs = 3.0
         self.warmup_proportion = 0.1

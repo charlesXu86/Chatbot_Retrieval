@@ -14,7 +14,11 @@
 '''
 
 import logging
+import pathlib
+import os
 from logging import handlers
+
+basedir = str(pathlib.Path(os.path.abspath(__file__)).parent.parent.parent.parent)
 
 class Logger(object):
     level_relations = {
@@ -25,8 +29,10 @@ class Logger(object):
         'crit':logging.CRITICAL
     }
 
-    all_log = './all.log'
-    info_log = './info.log'
+    if not os.path.exists(basedir + '/log'):
+        os.makedirs(basedir + '/log')
+    all_log = basedir + '/log/all.log'
+    info_log = basedir + '/log/info.log'
 
     def __init__(self,filename,level='info', when='D',backCount=50,fmt='%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s'):
         self.logger = logging.getLogger(filename)

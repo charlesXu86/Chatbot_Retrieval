@@ -18,7 +18,7 @@ import json
 import logging
 import datetime
 
-from Chatbot_Retrival_rest.Api.similar.Get_similar import get_similar_res_bert
+# from Chatbot_Retrival_rest.Api.similar.Get_similar import get_similar_res_bert
 # from Chatbot_Retrival_rest.Api.similar.Get_similar_albert import get_similar_res_albert
 
 from Chatbot_Retrival_rest.Api.utils.LogUtils import Logger
@@ -36,7 +36,8 @@ def sim_server(request):
             model = jsonData["model"]
             localtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-            result = get_similar_res_bert(sen1, sen2)
+            # result = get_similar_res_bert(sen1, sen2)
+            result = ''
             dic = {
                 "desc": "Success",
                 "ques1": sen1,

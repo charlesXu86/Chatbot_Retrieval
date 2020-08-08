@@ -20,6 +20,7 @@ from Chatbot_Retrival_rest.Api.QA.QA_server import qa_server
 from Chatbot_Retrival_rest.Api.Domain.Domain_cls_server import domain_server
 from Chatbot_Retrival_rest.Api.similar.Similar_server import sim_server
 
+
 urlpatterns = [
 
     path('qa', qa_server), # 问答
