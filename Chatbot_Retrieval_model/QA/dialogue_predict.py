@@ -37,7 +37,6 @@ def get_anwser(msg):
     resul = {
         'domain':'',
         'anwser':'',
-        'pull_back': 0    # 拉回方式   0 是同级关系， 1 是顺承关系，默认为0
     }
 
     robot = FAQ(usedVec=False)

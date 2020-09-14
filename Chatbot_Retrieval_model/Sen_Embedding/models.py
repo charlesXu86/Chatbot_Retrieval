@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 from onnxruntime import InferenceSession, SessionOptions
 
-from Chatbot_Retrieval_model.transformers.tokenization_bert import BertTokenizer
+from Chatbot_Retrieval_model.transformers_bak.tokenization_bert import BertTokenizer
 
 
 # import onnxmltools

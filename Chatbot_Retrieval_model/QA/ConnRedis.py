@@ -27,8 +27,8 @@ class RedisDatabase():
         # self.host = '172.17.41.235'
         # self.port = 7404
         # self.passwd = 'RTRgHKD2RmurhTWR'
-        self.host = '124.70.194.208'
-        # self.host = '172.18.86.20'
+        # self.host = '124.70.194.208'
+        self.host = '172.18.86.20'     # 测试服务器
         self.port = 6379
         self.r = redis.StrictRedis(host=self.host, port=self.port)
         logger.info('Connect Redis success {}'.format(self.r))
