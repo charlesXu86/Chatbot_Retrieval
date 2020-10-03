@@ -18,9 +18,7 @@ import json
 import logging
 import datetime
 
-from Chatbot_Retrieval_model.QA.dialogue_predict import get_anwser
-
-from Chatbot_Retrival_rest.Api.utils.LogUtils import Logger
+from Chatbot_Retrival_rest.Api.QA.QA_normalization import qa_normal
 
 logger = logging.getLogger(__name__)
 
@@ -30,12 +28,12 @@ def qa_server(request):
 
         try:
             jsonData = json.loads(request.body.decode('utf-8'))
-            msg = jsonData["msg"]
+            message = jsonData["message"]
             localtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            result = get_anwser(msg)
+            result = qa_normal(message)
             dic = {
                 "desc": "Success",
-                "ques": msg,
+                "ques": message,
                 "result": result,
                 "time": localtime
             }

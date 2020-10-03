@@ -5,7 +5,7 @@
  
 @Software:   PyCharm
  
-@File    :   ConnRedis.py
+@File    :   RedisUtils.py
  
 @Time    :   2020/3/12 9:40 上午
  
@@ -51,7 +51,7 @@ def add_data():
 
     if db.r.exists('chatbot'):
         db.r.delete('chatbot')
-    db.insert(keyName='faq', jsonStr=json.dumps(faq, indent=4, ensure_ascii=False))
+    db.insert(keyName='Chatbot_Retrieval_model', jsonStr=json.dumps(faq, indent=4, ensure_ascii=False))
     print('Success')
 
 

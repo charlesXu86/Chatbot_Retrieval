@@ -23,7 +23,7 @@ class Config():
         self.bert_config_file = '/Data/public/pretrained_models/tensorflow1.x/chinese-bert-wwm-ext/bert_config.json'
         self.vocab_file = '/Data/public/pretrained_models/tensorflow1.x/chinese-bert-wwm-ext/vocab.txt'
         self.data_dir = os.path.join(basedir, 'data/bert_sim/')
-        self.output_dir = basedir + '/Chatbot_Retrieval_model/Bert_sim/saved_model_bert'
+        self.output_dir = basedir + '/Chatbot_Retrieval_model_sss/Bert_sim/saved_model_bert'
         self.init_checkpoint = '/Data/public/pretrained_models/tensorflow1.x/chinese-bert-wwm-ext/bert_model.ckpt'
 
         self.do_lower_case = True

@@ -14,8 +14,8 @@
 # '''
 #
 # import tensorflow as tf
-# # from Chatbot_Retrieval_model.Bert_sim.run_similarity_bert import BertSim
-# # from Chatbot_Retrieval_model.Bert_sim.run_similarity_albert import AlBertSim
+# # from Chatbot_Retrieval_model_sss.Bert_sim.run_similarity_bert import BertSim
+# # from Chatbot_Retrieval_model_sss.Bert_sim.run_similarity_albert import AlBertSim
 #
 # # dc = BertSim()
 # # dc.set_mode(tf.estimator.ModeKeys.PREDICT)
