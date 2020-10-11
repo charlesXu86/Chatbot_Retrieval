@@ -1,3 +1,2 @@
 elasticsearch
-whoosh==2.7.4
 time_convert==1.2.5

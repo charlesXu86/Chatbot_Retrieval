@@ -56,12 +56,9 @@ class Searcher(object):
     def search_es(self, question):
         answers = []
         res = self.search_specific(question, 'question')
-        # print(res)
         for hit in res:
-            answer_dict = {}
-            answer_dict['score'] = hit['_score'] / 100
-            answer_dict['sim_question'] = hit['_source']['question']
-            answer_dict['answers'] = hit['_source']['answers'].split('\n')
+            answer_dict = {'score': hit['_score'] / 100, 'sim_question': hit['_source']['question'],
+                           'answers': hit['_source']['answers'].split('\n')}
             answers.append(answer_dict)
         return answers
 
